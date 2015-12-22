@@ -2,10 +2,10 @@ package org.rali.ljak.ecva;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.util.Arrays;
-
 import net.sourceforge.argparse4j.ArgumentParsers;
+import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
+import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Subparser;
 import net.sourceforge.argparse4j.inf.Subparsers;
 
@@ -35,7 +35,7 @@ public class Ecva {
 		 * --reference_file_delimiter, --rfd ; default = "\t" ; string
 		 * --filter_file, --flt
 		 * --fails_file, --flf
-		 * --fails_file_delimiter, --ffd ; default = "\t" ; string
+		 * --fails_file_delimiter, --ffd ; default = "\t" ; string ?
 		 * --map N (liste); default : map 20
 		 * --pre N (liste); default : pre 20
 		 * --rec N (liste); default : rec 20
@@ -43,20 +43,27 @@ public class Ecva {
 		 * --verbose, -v, -vv (debug?)
 		 */
 		Subparser EARparser = spManager.addParser("EvaluateAlignResults").aliases("EAR");
-		EARparser.addArgument("results_file");
-		EARparser.addArgument("--results_file_delimiter", "--rsd");
-		EARparser.addArgument("reference_file");
-		EARparser.addArgument("--reference_file_delimiter", "--rfd");
-		EARparser.addArgument("--filter_file", "--flt");
-		EARparser.addArgument("--fails_file", "--flf");
-		EARparser.addArgument("--fails_file_delimiter", "--ffd");
-		EARparser.addArgument("--map N"); //changer ça 
-		EARparser.addArgument("--rec N");
-		EARparser.addArgument("--rec N");
-		EARparser.addArgument("--top N");
-		EARparser.addArgument("--verbose", "-v,");
+		EARparser.addArgument("results_file").type(Arguments.fileType());
+		EARparser.addArgument("reference_file").type(Arguments.fileType());
+		EARparser.addArgument("--filter_file", "--flt").type(Arguments.fileType());
+		EARparser.addArgument("--fails_file", "--flf").type(Arguments.fileType());
+		
+		EARparser.addArgument("--results_file_delimiter", "--rsd").type(String.class).setDefault("\\|");
+		EARparser.addArgument("--reference_file_delimiter", "--rfd").type(String.class).setDefault("\t");
+		
+		EARparser.addArgument("--map").type(Integer.class).nargs("*").setDefault(20);
+		EARparser.addArgument("--pre").type(Integer.class).nargs("*").setDefault(20);
+		EARparser.addArgument("--rec").type(Integer.class).nargs("*").setDefault(20);
+		EARparser.addArgument("--top").type(Integer.class).nargs("*").setDefault(20);
+		
+		EARparser.addArgument("--verbose", "-v,").action(Arguments.storeTrue());
 			
-			
+		
+		try {
+	        System.out.println(MAINparser.parseArgs(args));
+	    } catch (ArgumentParserException e) {
+	    	MAINparser.handleError(e);
+	    }
 			
 			
 			
@@ -76,11 +83,11 @@ public class Ecva {
 			
 			
 			
-		if (args[0].equalsIgnoreCase("-eval")){
-			Evaluation(Arrays.copyOfRange(args, 1, args.length));
-		} else {
-			System.err.println("Bad Arguments"); //TODO: improve error msg clarity
-		}	
+//		if (args[0].equalsIgnoreCase("-eval")){
+//			Evaluation(Arrays.copyOfRange(args, 1, args.length));
+//		} else {
+//			System.err.println("Bad Arguments"); //TODO: improve error msg clarity
+//		}	
 	}
 	
 	
