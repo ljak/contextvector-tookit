@@ -32,11 +32,29 @@ public class Ecva {
 		Subparser MCMparser = subParserManager.addParser("MineCoocMatrix").aliases("mine").help("-h for Additional Help");
 		MCMparser.setDefault("call", new MineCoocMatrix());
 		
+		MCMparser.addArgument("source_corpora").type(Arguments.fileType()); //could be a plain text or a lucene index
+		MCMparser.addArgument("output_file(.cm)").type(Arguments.fileType());
+		
+		MCMparser.addArgument("-words_list_file").metavar("FILE").type(Arguments.fileType()); //if not present, take all the vocabulary
+		MCMparser.addArgument("-coocs_filter_file").metavar("FILE").type(Arguments.fileType()); //if not present, all words can be coocs
+		MCMparser.addArgument("-max_win").type(Integer.class).setDefault(7).metavar("N");
+		MCMparser.addArgument("-max_freq").type(Long.class).setDefault(Long.MAX_VALUE).metavar("N");
+		
+		MCMparser.addArgument("-verbose", "-v", "-vv").action(Arguments.storeTrue());
+		//MCMparser.addArgument("-lg");
+		//MCMparser.addArgument("-tokenizer");
+		//MCMparser.addArgument("-sub_set_text");
 		/**
 		 */
 		
 		/**
 		 * BuildContextVectors Command and Arguments Definitions
+		 *      * cooc_matrix_file (.cm)
+		 * output_file (.cv)
+		 * window_size (verify according to max_win from .cm file)
+		 * association_measure (choice ?) (come from AM classe ?)
+		 * --cut_off_freq (default: 0)
+		 * --coocs_list_file (if not present, all words can be coocs)
 		 */
 		Subparser BCVparser = subParserManager.addParser("BuildContextVectors").aliases("build").help("-h for Additional Help");
 		BCVparser.setDefault("call", new BuildContextVectors());
@@ -70,17 +88,17 @@ public class Ecva {
 		
 		EARparser.addArgument("results_file").type(Arguments.fileType());//.verifyCanRead());
 		EARparser.addArgument("references_file").type(Arguments.fileType());//.verifyCanRead());
-		EARparser.addArgument("-filter_file", "-flt").type(Arguments.fileType());//.verifyCanRead());
-		EARparser.addArgument("-output_fails_file", "-oaf").type(Arguments.fileType());//.verifyCanCreate());
+		EARparser.addArgument("-filter_file", "-flt").metavar("FILE").type(Arguments.fileType());//.verifyCanRead());
+		EARparser.addArgument("-output_fails_file", "-oaf").metavar("FILE").type(Arguments.fileType());//.verifyCanCreate());
 		
-		EARparser.addArgument("-map").type(Integer.class).nargs("*").setDefault(20);
-		EARparser.addArgument("-pre").type(Integer.class).nargs("*").setDefault(20);
-		EARparser.addArgument("-rec").type(Integer.class).nargs("*").setDefault(20);
-		EARparser.addArgument("-top").type(Integer.class).nargs("*").setDefault(20);
+		EARparser.addArgument("-map").type(Integer.class).nargs("*").setDefault(20).metavar("@N");
+		EARparser.addArgument("-pre").type(Integer.class).nargs("*").setDefault(20).metavar("@N");
+		EARparser.addArgument("-rec").type(Integer.class).nargs("*").setDefault(20).metavar("@N");
+		EARparser.addArgument("-top").type(Integer.class).nargs("*").setDefault(20).metavar("@N");
 		
 		EARparser.addArgument("-verbose", "-v", "-vv").action(Arguments.storeTrue());
-		EARparser.addArgument("-results_file_delimiter", "-rsd").type(String.class).setDefault("\\|");
-		EARparser.addArgument("-references_file_delimiter", "-rfd").type(String.class).setDefault("\t");
+		EARparser.addArgument("-results_file_delimiter", "-rsd").type(String.class).setDefault("\\|").metavar("EXPR");
+		EARparser.addArgument("-references_file_delimiter", "-rfd").type(String.class).setDefault("\t").metavar("EXPR");
 		/**
 		 */
 		
