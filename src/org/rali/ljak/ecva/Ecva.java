@@ -2,6 +2,9 @@ package org.rali.ljak.ecva;
 
 import java.io.IOException;
 import java.text.DecimalFormat;
+
+import org.rali.ljak.ecva.eval.QueryFile;
+
 import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
@@ -9,8 +12,6 @@ import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
 import net.sourceforge.argparse4j.inf.Subparser;
 import net.sourceforge.argparse4j.inf.Subparsers;
-
-import org.rali.ljak.ecva.evaluation.QueryFile;
 
 public class Ecva {
 
@@ -49,16 +50,19 @@ public class Ecva {
 		
 		/**
 		 * BuildContextVectors Command and Arguments Definitions
-		 *      * cooc_matrix_file (.cm)
-		 * output_file (.cv)
-		 * window_size (verify according to max_win from .cm file)
-		 * association_measure (choice ?) (come from AM classe ?)
-		 * --cut_off_freq (default: 0)
-		 * --coocs_list_file (if not present, all words can be coocs)
 		 */
 		Subparser BCVparser = subParserManager.addParser("BuildContextVectors").aliases("build").help("-h for Additional Help");
 		BCVparser.setDefault("call", new BuildContextVectors());
 		
+		BCVparser.addArgument("cooc_matrix_file(.cm)").type(Arguments.fileType());
+		BCVparser.addArgument("output_file(.cv)").type(Arguments.fileType());
+		
+		BCVparser.addArgument("association_measure"); //come from AM classe ? Argument.type()
+		BCVparser.addArgument("-window_size").type(Integer.class).setDefault(7).metavar("N"); //verify according to max_win from .cm file
+		BCVparser.addArgument("-cut_off_freq").type(Integer.class).setDefault(0).metavar("N");
+		BCVparser.addArgument("-coocs_filter_file").metavar("FILE").type(Arguments.fileType()); //if not present, all words can be coocs
+		
+		MCMparser.addArgument("-verbose", "-v", "-vv").action(Arguments.storeTrue());
 		/**
 		 */
 		

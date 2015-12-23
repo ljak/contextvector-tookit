@@ -1,4 +1,4 @@
-package org.rali.ljak.ecva.evaluation;
+package org.rali.ljak.ecva.eval;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -183,8 +183,7 @@ public class OneQuery {
 	public static void main(String[] args) throws IOException {
 		
 		OneQuery se = new OneQuery(new ArrayList<Integer> (Arrays.asList (new Integer[]{6, 4, 7, 1, 2})), 
-				//(Set<?>) new HashSet<Integer> (Arrays.asList(new Integer[]{1, 2, 3, 4, 5}))
-				(Set<?>) new HashSet<Integer> (Arrays.asList(new Integer[]{4}))
+				new HashSet<Integer> (Arrays.asList(new Integer[]{4}))
 				//(Set<?>) new HashSet<Integer> (Arrays.asList(new Integer[]{7,1}))
 				);
 		

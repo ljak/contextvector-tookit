@@ -1,4 +1,4 @@
-package org.rali.ljak.ecva.evaluation;
+package org.rali.ljak.ecva.eval;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -97,17 +97,17 @@ public class QueryFile {
 	 */
 	public double getMeanPrecisionAtK(int cut_off){
 		if (cut_off > maxNbrCandidats) cut_off = maxNbrCandidats;
-		return this.precisionAtK.get(cut_off)/(double)this.size;
+		return this.precisionAtK.get(cut_off)/this.size;
 	}
 	
 	public double getMeanRecallAtK(int cut_off){
 		if (cut_off > maxNbrCandidats) cut_off = maxNbrCandidats;
-		return this.recallAtK.get(cut_off)/(double)this.size;
+		return this.recallAtK.get(cut_off)/this.size;
 	}
 	
 	public double getMeanAveragePrecisionAtK(int cut_off){
 		if (cut_off > maxNbrCandidats) cut_off = maxNbrCandidats;
-		return this.mapAtK.get(cut_off)/(double)this.size;
+		return this.mapAtK.get(cut_off)/this.size;
 	}
 	
 	public double getTOPAtK(int cut_off){
