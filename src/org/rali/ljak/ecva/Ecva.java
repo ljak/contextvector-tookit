@@ -6,6 +6,7 @@ import net.sourceforge.argparse4j.ArgumentParsers;
 import net.sourceforge.argparse4j.impl.Arguments;
 import net.sourceforge.argparse4j.inf.ArgumentParser;
 import net.sourceforge.argparse4j.inf.ArgumentParserException;
+import net.sourceforge.argparse4j.inf.Namespace;
 import net.sourceforge.argparse4j.inf.Subparser;
 import net.sourceforge.argparse4j.inf.Subparsers;
 
@@ -20,111 +21,148 @@ public class Ecva {
 	 */
 	public static void main(String[] args) throws IOException {
 		
-		ArgumentParser MAINparser = ArgumentParsers.newArgumentParser("eCVa-Toolkit");
-		MAINparser.description("explicit Context Vector analysis - Toolkit");
+		ArgumentParser MainParser = ArgumentParsers.newArgumentParser("eCVa-Toolkit");
+		MainParser.description("explicit Context Vector analysis - Toolkit");
 		
-		Subparsers spManager = MAINparser.addSubparsers();
-			
+		Subparsers subParserManager = MainParser.addSubparsers().title("Commands").description("Available Commands").metavar("COMMAND");
 		
 		/**
-		 * 
-		 * EvaluateAlignResults, EAR
-		 * results_file
-		 * --results_file_delimiter, --rsd ; default = "\\|" ; string
-		 * reference_file
-		 * --reference_file_delimiter, --rfd ; default = "\t" ; string
-		 * --filter_file, --flt
-		 * --fails_file, --flf
-		 * --fails_file_delimiter, --ffd ; default = "\t" ; string ?
-		 * --map N (liste); default : map 20
-		 * --pre N (liste); default : pre 20
-		 * --rec N (liste); default : rec 20
-		 * --top N (liste); default : top 20
-		 * --verbose, -v, -vv (debug?)
+		 * MineCoocMatrix Command and Arguments Definitions
 		 */
-		Subparser EARparser = spManager.addParser("EvaluateAlignResults").aliases("EAR");
-		EARparser.addArgument("results_file").type(Arguments.fileType());
-		EARparser.addArgument("reference_file").type(Arguments.fileType());
-		EARparser.addArgument("--filter_file", "--flt").type(Arguments.fileType());
-		EARparser.addArgument("--fails_file", "--flf").type(Arguments.fileType());
+		Subparser MCMparser = subParserManager.addParser("MineCoocMatrix").aliases("mine").help("-h for Additional Help");
+		MCMparser.setDefault("call", new MineCoocMatrix());
 		
-		EARparser.addArgument("--results_file_delimiter", "--rsd").type(String.class).setDefault("\\|");
-		EARparser.addArgument("--reference_file_delimiter", "--rfd").type(String.class).setDefault("\t");
+		/**
+		 */
 		
-		EARparser.addArgument("--map").type(Integer.class).nargs("*").setDefault(20);
-		EARparser.addArgument("--pre").type(Integer.class).nargs("*").setDefault(20);
-		EARparser.addArgument("--rec").type(Integer.class).nargs("*").setDefault(20);
-		EARparser.addArgument("--top").type(Integer.class).nargs("*").setDefault(20);
+		/**
+		 * BuildContextVectors Command and Arguments Definitions
+		 */
+		Subparser BCVparser = subParserManager.addParser("BuildContextVectors").aliases("build").help("-h for Additional Help");
+		BCVparser.setDefault("call", new BuildContextVectors());
 		
-		EARparser.addArgument("--verbose", "-v,").action(Arguments.storeTrue());
-			
+		/**
+		 */
+		
+		/**
+		 * TranslateContextVectors Command and Arguments Definitions
+		 */
+		Subparser TCVparser = subParserManager.addParser("TranslateContextVectors").aliases("trans").help("-h for Additional Help");
+		TCVparser.setDefault("call", new TranslateContextVectors());
+		
+		/**
+		 */
+		
+		/**
+		 * AlignContextVectors Command and Arguments Definitions
+		 */
+		Subparser ACRparser = subParserManager.addParser("AlignContextVectors").aliases("align").help("-h for Additional Help");
+		ACRparser.setDefault("call", new AlignContextVectors());
+		
+		/**
+		 */
+		
+		/**
+		 * EvaluateAlignResults Command and Arguments Definitions
+		 */
+		Subparser EARparser = subParserManager.addParser("EvaluateAlignResults").aliases("eval").help("-h for Additional Help");
+		EARparser.setDefault("call", new EvaluateAlignResults());
+		
+		EARparser.addArgument("results_file").type(Arguments.fileType());//.verifyCanRead());
+		EARparser.addArgument("references_file").type(Arguments.fileType());//.verifyCanRead());
+		EARparser.addArgument("-filter_file", "-flt").type(Arguments.fileType());//.verifyCanRead());
+		EARparser.addArgument("-output_fails_file", "-oaf").type(Arguments.fileType());//.verifyCanCreate());
+		
+		EARparser.addArgument("-map").type(Integer.class).nargs("*").setDefault(20);
+		EARparser.addArgument("-pre").type(Integer.class).nargs("*").setDefault(20);
+		EARparser.addArgument("-rec").type(Integer.class).nargs("*").setDefault(20);
+		EARparser.addArgument("-top").type(Integer.class).nargs("*").setDefault(20);
+		
+		EARparser.addArgument("-verbose", "-v", "-vv").action(Arguments.storeTrue());
+		EARparser.addArgument("-results_file_delimiter", "-rsd").type(String.class).setDefault("\\|");
+		EARparser.addArgument("-references_file_delimiter", "-rfd").type(String.class).setDefault("\t");
+		/**
+		 */
 		
 		try {
-	        System.out.println(MAINparser.parseArgs(args));
+			Namespace res = MainParser.parseArgs(args);
+			((CommandToExecute) res.get("call")).toExecute(res);
 	    } catch (ArgumentParserException e) {
-	    	MAINparser.handleError(e);
+	    	MainParser.handleError(e);
 	    }
-			
-			
-			
-			
-			
-			
-			
-
-			
-		
-		
-			
-			
-			
-			
-			
-			
-			
-			
-//		if (args[0].equalsIgnoreCase("-eval")){
-//			Evaluation(Arrays.copyOfRange(args, 1, args.length));
-//		} else {
-//			System.err.println("Bad Arguments"); //TODO: improve error msg clarity
-//		}	
+	
 	}
 	
 	
+	private static interface CommandToExecute{
+		void toExecute(Namespace ns);
+	}
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	private static void Evaluation(String[] args) throws IOException{
-		
-		QueryFile eval = null;
-		
-		switch (args.length){
-			case (0): System.out.println("Missing Arguments"); //TODO: improve error msg clarity
-				break;
-			case (1): System.out.println("Missing Arguments"); //TODO: improve error msg clarity
-				break;
-			case (2): eval = new QueryFile(args[0], args[1]);
-				break;
-			case (3): eval = new QueryFile(args[0], args[1], args[2]);
-				break;
+	private static class MineCoocMatrix implements CommandToExecute{
+		@Override
+		public void toExecute(Namespace ns) {
+			// TODO Auto-generated method stub
+			
 		}
-
-		DecimalFormat df = new DecimalFormat("#.###");
-		
-		System.out.println("MAP@20: "+df.format(eval.getMeanAveragePrecisionAtK(20)));
-		System.out.println("P@1: "+df.format(eval.getMeanPrecisionAtK(1)));
-		System.out.println("P@5: "+df.format(eval.getMeanPrecisionAtK(5)));
-		System.out.println("P@20: "+df.format(eval.getMeanPrecisionAtK(20)));
-		System.out.println("hP@1: "+df.format(eval.getTOPAtK(1)));
-		System.out.println("hP@5: "+df.format(eval.getTOPAtK(5)));
-		System.out.println("hP@20: "+df.format(eval.getTOPAtK(20)));
-		
 	}
+	
+	private static class BuildContextVectors implements CommandToExecute{
+		@Override
+		public void toExecute(Namespace ns) {
+			// TODO Auto-generated method stub
+			
+		}
+	}
+	
+	private static class TranslateContextVectors implements CommandToExecute{
+		@Override
+		public void toExecute(Namespace ns) {
+			// TODO Auto-generated method stub
+			
+		}
+	}
+	
+	private static class AlignContextVectors implements CommandToExecute{
+		@Override
+		public void toExecute(Namespace ns) {
+			// TODO Auto-generated method stub
+			
+		}
+	}
+	
+	private static class EvaluateAlignResults implements CommandToExecute{
+		@Override
+		public void toExecute(Namespace ns) {
+			// TODO Auto-generated method stub
+			System.out.println(ns);
+		}
+	}
+	
+//	private static void EvaluateAlignResults(Namespace ns) throws IOException{
+//		
+//		QueryFile eval = null;
+//		
+//		switch (args.length){
+//			case (0): System.out.println("Missing Arguments"); //TODO: improve error msg clarity
+//				break;
+//			case (1): System.out.println("Missing Arguments"); //TODO: improve error msg clarity
+//				break;
+//			case (2): eval = new QueryFile(args[0], args[1]);
+//				break;
+//			case (3): eval = new QueryFile(args[0], args[1], args[2]);
+//				break;
+//		}
+//
+//		DecimalFormat df = new DecimalFormat("#.###");
+//		
+//		System.out.println("MAP@20: "+df.format(eval.getMeanAveragePrecisionAtK(20)));
+//		System.out.println("P@1: "+df.format(eval.getMeanPrecisionAtK(1)));
+//		System.out.println("P@5: "+df.format(eval.getMeanPrecisionAtK(5)));
+//		System.out.println("P@20: "+df.format(eval.getMeanPrecisionAtK(20)));
+//		System.out.println("hP@1: "+df.format(eval.getTOPAtK(1)));
+//		System.out.println("hP@5: "+df.format(eval.getTOPAtK(5)));
+//		System.out.println("hP@20: "+df.format(eval.getTOPAtK(20)));
+//		
+//	}
 
 }
