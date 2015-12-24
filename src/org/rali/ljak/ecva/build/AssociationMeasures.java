@@ -1,6 +1,6 @@
 package org.rali.ljak.ecva.build;
 
-public enum AssociationMeasure {
+public enum AssociationMeasures {
 	
 	LLR {
 		@Override

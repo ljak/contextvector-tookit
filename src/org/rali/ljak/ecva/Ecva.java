@@ -3,7 +3,8 @@ package org.rali.ljak.ecva;
 import java.io.IOException;
 import java.text.DecimalFormat;
 
-import org.rali.ljak.ecva.build.AssociationMeasure;
+import org.rali.ljak.ecva.align.SimilarityMeasures;
+import org.rali.ljak.ecva.build.AssociationMeasures;
 import org.rali.ljak.ecva.eval.QueryFile;
 
 import net.sourceforge.argparse4j.ArgumentParsers;
@@ -17,7 +18,7 @@ import net.sourceforge.argparse4j.inf.Subparsers;
 public class Ecva {
 
 	/**
-	 * Main class of the eCVoL-Toolkit.
+	 * Main class of the eCVa-Toolkit.
 	 * @param args
 	 * @throws IOException 
 	 */
@@ -31,18 +32,18 @@ public class Ecva {
 		/**
 		 * MineCoocMatrix Command and Arguments Definitions
 		 */
-		Subparser MCMparser = subParserManager.addParser("MineCoocMatrix").aliases("mine").help("-h for Additional Help");
+		Subparser MCMparser = subParserManager.addParser("MineCoocMatrix").aliases("mine").help("'mine -h' for Additional Help");
 		MCMparser.setDefault("call", new MineCoocMatrix());
 		
 		MCMparser.addArgument("source_corpora").type(Arguments.fileType()); //could be a plain text or a lucene index
 		MCMparser.addArgument("output_file(.cm)").type(Arguments.fileType());
 		
-		MCMparser.addArgument("-words_list_file").metavar("FILE").type(Arguments.fileType()); //if not present, take all the vocabulary
-		MCMparser.addArgument("-coocs_filter_file").metavar("FILE").type(Arguments.fileType()); //if not present, all words can be coocs
-		MCMparser.addArgument("-max_win").type(Integer.class).setDefault(7).metavar("N");
-		MCMparser.addArgument("-max_freq").type(Long.class).setDefault(Long.MAX_VALUE).metavar("N");
+		MCMparser.addArgument("-words_list_file", "-wlf").metavar("FILE").type(Arguments.fileType()); //if not present, take all the vocabulary
+		MCMparser.addArgument("-coocs_filter_file", "-cff").metavar("FILE").type(Arguments.fileType()); //if not present, all words can be coocs
+		MCMparser.addArgument("-max_win", "-mw").type(Integer.class).setDefault(7).metavar("N");
+		MCMparser.addArgument("-max_freq", "-mf").type(Long.class).setDefault(Long.MAX_VALUE).metavar("N");
 		
-		MCMparser.addArgument("-verbose", "-v", "-vv").action(Arguments.storeTrue());
+		MCMparser.addArgument("-verbose", "-v").action(Arguments.count());
 		//MCMparser.addArgument("-lg");
 		//MCMparser.addArgument("-tokenizer");
 		//MCMparser.addArgument("-sub_set_text");
@@ -52,43 +53,60 @@ public class Ecva {
 		/**
 		 * BuildContextVectors Command and Arguments Definitions
 		 */
-		Subparser BCVparser = subParserManager.addParser("BuildContextVectors").aliases("build").help("-h for Additional Help");
+		Subparser BCVparser = subParserManager.addParser("BuildContextVectors").aliases("build").help("'build -h' for Additional Help");
 		BCVparser.setDefault("call", new BuildContextVectors());
 		
 		BCVparser.addArgument("cooc_matrix_file(.cm)").type(Arguments.fileType());
 		BCVparser.addArgument("output_file(.cv)").type(Arguments.fileType());
 		
-		BCVparser.addArgument("association_measure").type(AssociationMeasure.class).choices(AssociationMeasure.values());
-		BCVparser.addArgument("-window_size").type(Integer.class).setDefault(7).metavar("N"); //verify according to max_win from .cm file
-		BCVparser.addArgument("-cut_off_freq").type(Integer.class).setDefault(0).metavar("N");
-		BCVparser.addArgument("-coocs_filter_file").metavar("FILE").type(Arguments.fileType()); //if not present, all words can be coocs
+		BCVparser.addArgument("association_measure").type(AssociationMeasures.class).choices(AssociationMeasures.values());
+		BCVparser.addArgument("-window_size", "-ws").type(Integer.class).setDefault(7).metavar("N"); //verify according to max_win from .cm file
+		BCVparser.addArgument("-cut_off_freq", "-cof").type(Integer.class).setDefault(0).metavar("N");
+		BCVparser.addArgument("-coocs_filter_file", "-cff").metavar("FILE").type(Arguments.fileType()); //if not present, all words can be coocs
 		
-		BCVparser.addArgument("-verbose", "-v", "-vv").action(Arguments.storeTrue());
+		BCVparser.addArgument("-verbose", "-v").action(Arguments.count());
 		/**
 		 */
 		
 		/**
 		 * TranslateContextVectors Command and Arguments Definitions
 		 */
-		Subparser TCVparser = subParserManager.addParser("TranslateContextVectors").aliases("trans").help("-h for Additional Help");
+		Subparser TCVparser = subParserManager.addParser("TranslateContextVectors").aliases("trans").help("'trans -h' for Additional Help");
 		TCVparser.setDefault("call", new TranslateContextVectors());
 		
+		TCVparser.addArgument("contextvectors_file(.cv)").type(Arguments.fileType());
+		TCVparser.addArgument("output_file(.tcv)").type(Arguments.fileType());
+		TCVparser.addArgument("bilingual_lexicon").type(Arguments.fileType());
+		
+		TCVparser.addArgument("-filter_by_lex", "-fbl").action(Arguments.storeTrue());
+		TCVparser.addArgument("-how_many_trans", "-hmt"); //TODO: choice ? voir dico classe
+		
+		TCVparser.addArgument("-verbose", "-v").action(Arguments.count());
 		/**
 		 */
 		
 		/**
 		 * AlignContextVectors Command and Arguments Definitions
+		 * --thread (?)
 		 */
-		Subparser ACRparser = subParserManager.addParser("AlignContextVectors").aliases("align").help("-h for Additional Help");
+		Subparser ACRparser = subParserManager.addParser("AlignContextVectors").aliases("align").help("'align -h' for Additional Help");
 		ACRparser.setDefault("call", new AlignContextVectors());
 		
+		ACRparser.addArgument("source_contextvectors_file(.cv/.tcv)").type(Arguments.fileType());
+		ACRparser.addArgument("targuet_output_file(.cv/.tcv)").type(Arguments.fileType());
+		ACRparser.addArgument("output_file(.alignRes)").type(Arguments.fileType());
+		
+		ACRparser.addArgument("-nbr_candidats", "-nbc").type(Integer.class).setDefault(20).metavar("N");
+		ACRparser.addArgument("-similarity_measure", "-sim").type(SimilarityMeasures.class).choices(SimilarityMeasures.values()).setDefault(SimilarityMeasures.COS);
+		
+		ACRparser.addArgument("-verbose", "-v").action(Arguments.count());
 		/**
 		 */
 		
 		/**
 		 * EvaluateAlignResults Command and Arguments Definitions
 		 */
-		Subparser EARparser = subParserManager.addParser("EvaluateAlignResults").aliases("eval").help("-h for Additional Help");
+		Subparser EARparser = subParserManager.addParser("EvaluateAlignResults").aliases("eval").help("'eval -h' for Additional Help");
 		EARparser.setDefault("call", new EvaluateAlignResults());
 		
 		EARparser.addArgument("results_file").type(Arguments.fileType());//.verifyCanRead());
@@ -101,7 +119,7 @@ public class Ecva {
 		EARparser.addArgument("-rec").type(Integer.class).nargs("*").setDefault(20).metavar("@N");
 		EARparser.addArgument("-top").type(Integer.class).nargs("*").setDefault(20).metavar("@N");
 		
-		EARparser.addArgument("-verbose", "-v", "-vv").action(Arguments.storeTrue());
+		EARparser.addArgument("-verbose", "-v").action(Arguments.count());
 		EARparser.addArgument("-results_file_delimiter", "-rsd").type(String.class).setDefault("\\|").metavar("EXPR");
 		EARparser.addArgument("-references_file_delimiter", "-rfd").type(String.class).setDefault("\t").metavar("EXPR");
 		/**
