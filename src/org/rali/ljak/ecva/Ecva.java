@@ -3,6 +3,7 @@ package org.rali.ljak.ecva;
 import java.io.IOException;
 import java.text.DecimalFormat;
 
+import org.rali.ljak.ecva.build.AssociationMeasure;
 import org.rali.ljak.ecva.eval.QueryFile;
 
 import net.sourceforge.argparse4j.ArgumentParsers;
@@ -57,12 +58,12 @@ public class Ecva {
 		BCVparser.addArgument("cooc_matrix_file(.cm)").type(Arguments.fileType());
 		BCVparser.addArgument("output_file(.cv)").type(Arguments.fileType());
 		
-		BCVparser.addArgument("association_measure"); //come from AM classe ? Argument.type()
+		BCVparser.addArgument("association_measure").type(AssociationMeasure.class).choices(AssociationMeasure.values());
 		BCVparser.addArgument("-window_size").type(Integer.class).setDefault(7).metavar("N"); //verify according to max_win from .cm file
 		BCVparser.addArgument("-cut_off_freq").type(Integer.class).setDefault(0).metavar("N");
 		BCVparser.addArgument("-coocs_filter_file").metavar("FILE").type(Arguments.fileType()); //if not present, all words can be coocs
 		
-		MCMparser.addArgument("-verbose", "-v", "-vv").action(Arguments.storeTrue());
+		BCVparser.addArgument("-verbose", "-v", "-vv").action(Arguments.storeTrue());
 		/**
 		 */
 		
