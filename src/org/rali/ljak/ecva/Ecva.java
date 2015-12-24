@@ -114,10 +114,10 @@ public class Ecva {
 		EARparser.addArgument("-filter_file", "-flt").metavar("FILE").type(Arguments.fileType());//.verifyCanRead());
 		EARparser.addArgument("-output_fails_file", "-oaf").metavar("FILE").type(Arguments.fileType());//.verifyCanCreate());
 		
-		EARparser.addArgument("-map").type(Integer.class).nargs("*").setDefault(20).metavar("@N");
-		EARparser.addArgument("-pre").type(Integer.class).nargs("*").setDefault(20).metavar("@N");
-		EARparser.addArgument("-rec").type(Integer.class).nargs("*").setDefault(20).metavar("@N");
-		EARparser.addArgument("-top").type(Integer.class).nargs("*").setDefault(20).metavar("@N");
+		EARparser.addArgument("-map").type(Integer.class).nargs("*").metavar("@N");
+		EARparser.addArgument("-pre").type(Integer.class).nargs("*").metavar("@N");
+		EARparser.addArgument("-rec").type(Integer.class).nargs("*").metavar("@N");
+		EARparser.addArgument("-top").type(Integer.class).nargs("*").metavar("@N");
 		
 		EARparser.addArgument("-verbose", "-v").action(Arguments.count());
 		EARparser.addArgument("-results_file_delimiter", "-rsd").type(String.class).setDefault("\\|").metavar("EXPR");
@@ -174,8 +174,22 @@ public class Ecva {
 	private static class EvaluateAlignResults implements CommandToExecute{
 		@Override
 		public void toExecute(Namespace ns) {
-			// TODO Auto-generated method stub
 			System.out.println(ns);
+			
+			QueryFile eval = null;
+			
+			try {
+				if (ns.get("filter_file").equals(null)) {
+					eval = new QueryFile(ns.get("results_file"), ns.get("references_file"));
+				} else {
+					eval = new QueryFile(ns.get("results_file"), ns.get("references_file"), ns.get("filter_file"));
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+			//TODO
 		}
 	}
 	

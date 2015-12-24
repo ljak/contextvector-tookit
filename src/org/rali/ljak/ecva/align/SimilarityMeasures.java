@@ -20,10 +20,10 @@ public enum SimilarityMeasures {
 	};
 	
 	/**
-	 * Contract Template for all Association Measure.
+	 * Contract Template for all Similarity Measure.
 	 */
 	public abstract String getName();
 	public abstract String getAcronyme();
-    public abstract double compute();
+	public abstract double compute();
     
 }
