@@ -333,7 +333,7 @@ public class QueryFile {
 		 * Tests Complet Class
 		 */
 		QueryFile t1 = new QueryFile("/u/jakubinl/Documents/PhD/HDD_Octal10/Experiments/RareWords/Moses/crossVocWithLongerNBestList/model_trainSet_starbuck_all.txt_vs_testSet_starbuck_2k_randAllFreq.txt_preResComp_nbest50.resComp_crossVoc.res", 
-				"/u/jakubinl/Documents/PhD/Ressources/data/starbuck/intersection_wikipedia/testSet_starbuck_1k_lowFreq.txt");
+				"/u/jakubinl/Documents/PhD/Ressources/data/starbuck/intersection_wikipedia/testSet_starbuck_2k_randAllFreq.txt");
 		
 //		System.out.println("precisionatK "+t1.precisionAtK);
 //		System.out.println("recallatK "+t1.recallAtK);
@@ -344,9 +344,9 @@ public class QueryFile {
 		System.out.println(t1.getTOPAtK(20));
 //		System.out.println(t1.getMeanPrecisionAtK(1));
 //		System.out.println(t1.getMeanPrecisionAtK(5));
-//		System.out.println(t1.getMeanPrecisionAtK(20));
+		System.out.println(t1.getMeanPrecisionAtK(20));
 		
-		System.out.println(t1.getFailsAtK(10));
+		System.out.println(t1.getFailsAtK(20));
 	}
 	
 }

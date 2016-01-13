@@ -1,7 +1,10 @@
 package org.rali.ljak.ecva;
 
+import java.io.FileWriter;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.rali.ljak.ecva.align.SimilarityMeasures;
 import org.rali.ljak.ecva.build.AssociationMeasures;
@@ -111,8 +114,8 @@ public class Ecva {
 		
 		EARparser.addArgument("results_file").type(Arguments.fileType());//.verifyCanRead());
 		EARparser.addArgument("references_file").type(Arguments.fileType());//.verifyCanRead());
-		EARparser.addArgument("-filter_file", "-flt").metavar("FILE").type(Arguments.fileType());//.verifyCanRead());
-		EARparser.addArgument("-output_fails_file", "-oaf").metavar("FILE").type(Arguments.fileType());//.verifyCanCreate());
+		EARparser.addArgument("-filter_file", "-filt").metavar("FILE").type(Arguments.fileType());//.verifyCanRead());
+		EARparser.addArgument("-output_fails_file", "-fail").metavar("FILE").type(Arguments.fileType());//.verifyCanCreate());
 		
 		EARparser.addArgument("-map").type(Integer.class).nargs("*").metavar("@N");
 		EARparser.addArgument("-pre").type(Integer.class).nargs("*").metavar("@N");
@@ -179,17 +182,42 @@ public class Ecva {
 			QueryFile eval = null;
 			
 			try {
-				if (ns.get("filter_file").equals(null)) {
-					eval = new QueryFile(ns.get("results_file"), ns.get("references_file"));
+				if (ns.getString("filter_file") == null) {
+					eval = new QueryFile(ns.getString("results_file"), ns.getString("references_file"));
 				} else {
-					eval = new QueryFile(ns.get("results_file"), ns.get("references_file"), ns.get("filter_file"));
+					eval = new QueryFile(ns.getString("results_file"), ns.getString("references_file"), ns.getString("filter_file"));
+				}
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			for (String m : java.util.Arrays.asList("top","map","pre","rec")){
+				if (ns.getList(m) != null){
+					for (Object i : new ArrayList<Object>(ns.getList(m))){
+						if (m.equalsIgnoreCase("top")) System.out.println("Top@"+i+": "+eval.getTOPAtK((int)i));
+						if (m.equalsIgnoreCase("map")) System.out.println("Map@"+i+": "+eval.getMeanAveragePrecisionAtK((int)i));
+						if (m.equalsIgnoreCase("pre")) System.out.println("Pre@"+i+": "+eval.getMeanPrecisionAtK((int)i));
+						if (m.equalsIgnoreCase("rec")) System.out.println("Rec@"+i+": "+eval.getMeanRecallAtK((int)i));	
+					}
+				}
+			}
+			
+			
+			try {
+				if (ns.getString("-output_fails_file") != null){
+					FileWriter writer = new FileWriter(ns.getString("-output_fails_file")); // TODO: what if is a relative path ?
+						for(String str: eval.getFailsAtK(20)) {
+							writer.write(str);
+						}
+					writer.close();
 				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
-			//TODO
+			
 		}
 	}
 	
