@@ -2,12 +2,17 @@ package org.rali.ljak.ecva;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 
+import org.apache.logging.log4j.Level;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import org.apache.logging.log4j.core.LoggerContext;
+import org.apache.logging.log4j.core.config.Configuration;
+import org.apache.logging.log4j.core.config.LoggerConfig;
 import org.rali.ljak.ecva.align.SimilarityMeasures;
 import org.rali.ljak.ecva.build.AssociationMeasures;
+import org.rali.ljak.ecva.eval.PostProcessing;
 import org.rali.ljak.ecva.eval.QueryFile;
 
 import net.sourceforge.argparse4j.ArgumentParsers;
@@ -19,6 +24,8 @@ import net.sourceforge.argparse4j.inf.Subparser;
 import net.sourceforge.argparse4j.inf.Subparsers;
 
 public class Ecva {
+	
+	public static final Logger logger = LogManager.getLogger();
 
 	/**
 	 * Main class of the eCVa-Toolkit.
@@ -31,6 +38,12 @@ public class Ecva {
 		MainParser.description("explicit Context Vector analysis - Toolkit");
 		
 		Subparsers subParserManager = MainParser.addSubparsers().title("Commands").description("Available Commands").metavar("COMMAND");
+		
+		/**
+		 * 
+		 * MAIN COMMANDS
+		 * 
+		 **/
 		
 		/**
 		 * MineCoocMatrix Command and Arguments Definitions
@@ -115,17 +128,48 @@ public class Ecva {
 		EARparser.addArgument("results_file").type(Arguments.fileType());//.verifyCanRead());
 		EARparser.addArgument("references_file").type(Arguments.fileType());//.verifyCanRead());
 		EARparser.addArgument("-filter_file", "-filt").metavar("FILE").type(Arguments.fileType());//.verifyCanRead());
-		EARparser.addArgument("-output_fails_file", "-fail").metavar("FILE").type(Arguments.fileType());//.verifyCanCreate());
+		
+		EARparser.addArgument("-output_fails_in_file_at", "-fail").type(Integer.class).nargs("*").metavar("@N"); //.metavar("FILE").type(Arguments.fileType());//.verifyCanCreate());
+		EARparser.addArgument("-output_success_in_file_at", "-succ").type(Integer.class).nargs("*").metavar("@N"); //.metavar("FILE").type(Arguments.fileType());//.verifyCanCreate());
 		
 		EARparser.addArgument("-map").type(Integer.class).nargs("*").metavar("@N");
 		EARparser.addArgument("-pre").type(Integer.class).nargs("*").metavar("@N");
 		EARparser.addArgument("-rec").type(Integer.class).nargs("*").metavar("@N");
 		EARparser.addArgument("-top").type(Integer.class).nargs("*").metavar("@N");
 		
-		EARparser.addArgument("-verbose", "-v").action(Arguments.count());
+		EARparser.addArgument("-verbose", "-v").type(Integer.class).action(Arguments.count());
 		EARparser.addArgument("-results_file_delimiter", "-rsd").type(String.class).setDefault("\\|").metavar("EXPR");
 		EARparser.addArgument("-references_file_delimiter", "-rfd").type(String.class).setDefault("\t").metavar("EXPR");
 		/**
+		 */
+		
+		/**
+		 * 
+		 * TOOLS COMMANDS
+		 * 
+		 **/
+		
+		/**
+		 * PostProcessing.extractCandidatesCountInResults (pp.count) Command and Arguments Definitions
+		 */
+		Subparser ECCIRparser = subParserManager.addParser("PostProcessing.extractCandidatesCountInResults").aliases("pp.count").help("'eval -h' for Additional Help");
+		ECCIRparser.setDefault("call", new extractCandidatesCountInResults());
+		
+		ECCIRparser.addArgument("results_file").type(Arguments.fileType());
+		
+		
+		/**
+		 * PostProcessing.removeCandidatesInResultsAccordingList (pp.rem) Command and Arguments Definitions
+		 */
+		Subparser RCIRALparser = subParserManager.addParser("PostProcessing.removeCandidatesInResultsAccordingList").aliases("pp.rem").help("'eval -h' for Additional Help");
+		RCIRALparser.setDefault("call", new removeCandidatesInResultsAccordingList());
+		
+		RCIRALparser.addArgument("results_file").type(Arguments.fileType());//.verifyCanRead());
+		RCIRALparser.addArgument("cand_list_file").type(Arguments.fileType());//.verifyCanRead());
+		
+		
+		/**
+		 ** END
 		 */
 		
 		try {
@@ -177,7 +221,13 @@ public class Ecva {
 	private static class EvaluateAlignResults implements CommandToExecute{
 		@Override
 		public void toExecute(Namespace ns) {
-			System.out.println(ns);
+			//System.out.println(ns);
+			
+			if (ns.getString("verbose") != null) {
+				if (ns.getInt("verbose") == 1) setLevelLogger(Level.INFO);
+				if (ns.getInt("verbose") == 2) setLevelLogger(Level.TRACE);
+				if (ns.getInt("verbose") == 3) setLevelLogger(Level.DEBUG);
+			}
 			
 			QueryFile eval = null;
 			
@@ -203,49 +253,72 @@ public class Ecva {
 				}
 			}
 			
-			
 			try {
-				if (ns.getString("-output_fails_file") != null){
-					FileWriter writer = new FileWriter(ns.getString("-output_fails_file")); // TODO: what if is a relative path ?
-						for(String str: eval.getFailsAtK(20)) {
-							writer.write(str);
+				for (String o : java.util.Arrays.asList("output_fails_in_file_at","output_success_in_file_at")){
+					if (ns.getList(o) != null){
+						String extension;
+						if (o.equals("output_fails_in_file_at")) {extension = ".failAt";} else {extension = ".succAt";}
+						for (Object i : new ArrayList<Object>(ns.getList(o))){
+							FileWriter writer = new FileWriter(ns.getString("results_file")+extension+String.valueOf((int)i)); // TODO: what if is a relative path ?
+							if (o.equalsIgnoreCase("output_fails_in_file_at")){
+								for (String str: eval.getFailsAtK((int)i)) {
+									writer.write(str);
+									writer.write("\n");
+								}
+							} else {
+								for (String str: eval.getSuccessAtK((int)i)) {
+									writer.write(str);
+									writer.write("\n");
+								}
+							}
+							writer.close();
 						}
-					writer.close();
+					}
 				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
+		}
+	}
+	
+	private static class extractCandidatesCountInResults implements CommandToExecute{
+		@Override
+		public void toExecute(Namespace ns) {
+			
+			try {
+				PostProcessing.extractCandidatesCountInResults(ns.getString("results_file"));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
 		}
 	}
 	
-//	private static void EvaluateAlignResults(Namespace ns) throws IOException{
-//		
-//		QueryFile eval = null;
-//		
-//		switch (args.length){
-//			case (0): System.out.println("Missing Arguments"); //TODO: improve error msg clarity
-//				break;
-//			case (1): System.out.println("Missing Arguments"); //TODO: improve error msg clarity
-//				break;
-//			case (2): eval = new QueryFile(args[0], args[1]);
-//				break;
-//			case (3): eval = new QueryFile(args[0], args[1], args[2]);
-//				break;
-//		}
-//
-//		DecimalFormat df = new DecimalFormat("#.###");
-//		
-//		System.out.println("MAP@20: "+df.format(eval.getMeanAveragePrecisionAtK(20)));
-//		System.out.println("P@1: "+df.format(eval.getMeanPrecisionAtK(1)));
-//		System.out.println("P@5: "+df.format(eval.getMeanPrecisionAtK(5)));
-//		System.out.println("P@20: "+df.format(eval.getMeanPrecisionAtK(20)));
-//		System.out.println("hP@1: "+df.format(eval.getTOPAtK(1)));
-//		System.out.println("hP@5: "+df.format(eval.getTOPAtK(5)));
-//		System.out.println("hP@20: "+df.format(eval.getTOPAtK(20)));
-//		
-//	}
+	private static class removeCandidatesInResultsAccordingList implements CommandToExecute{
+		@Override
+		public void toExecute(Namespace ns) {
+			
+			try {
+				PostProcessing.removeCandidatesInResultsAccordingList(ns.getString("results_file"), ns.getString("cand_list_file"));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+	}
+	
+	private static void setLevelLogger(Level l){
+		
+		LoggerContext ctx = (LoggerContext) LogManager.getContext(false);
+		Configuration config = ctx.getConfiguration();
+		LoggerConfig loggerConfig = config.getLoggerConfig(LogManager.ROOT_LOGGER_NAME); //LogManager.getLogger(Ecva.class).getName()
+		loggerConfig.setLevel(l);
+		ctx.updateLoggers();  // This causes all Loggers to refetch information from their LoggerConfig.
+		
+	}
 
 }

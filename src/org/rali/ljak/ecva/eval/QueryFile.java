@@ -14,14 +14,12 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.rali.ljak.ecva.Ecva;
 import org.rali.ljak.ecva.utils.FilesOperations;
 
 
 public class QueryFile {
 	
-	private static final Logger logger = LogManager.getLogger();
 	
 	/**
 	 * Attributes
@@ -38,6 +36,7 @@ public class QueryFile {
 	private List<Double> recallAtK;
 	private List<Double> mapAtK;
 	private List<Integer> topAtK;
+	private List<List<String>> successAtK;
 	private List<List<String>> failsAtK;
 	
 	
@@ -50,9 +49,9 @@ public class QueryFile {
 		this.nameRefFile = ref_file_path.split("\\/")[ref_file_path.split("\\/").length-1];
 		this.nameSubFile = subSetRes_file_path.split("\\/")[subSetRes_file_path.split("\\/").length-1];
 		
-		logger.info("Evaluation of Results File: "+nameResFile);
-		logger.info("According to Reference: "+nameRefFile);
-		if (nameSubFile.isEmpty()){logger.info("No SubSet File used.");} else {logger.info("SubSet File: "+nameSubFile);}
+		Ecva.logger.info("Evaluation of Results File: "+nameResFile);
+		Ecva.logger.info("According to Reference: "+nameRefFile);
+		if (nameSubFile.isEmpty()){Ecva.logger.info("No SubSet File used.");} else {Ecva.logger.info("SubSet File: "+nameSubFile);}
 		
 		this.data = loadData(res_file_path, ref_file_path, subSetRes_file_path);
 		this.size = this.data.size();
@@ -61,6 +60,12 @@ public class QueryFile {
 		this.recallAtK =  new ArrayList<Double>((Collections.nCopies(maxNbrCandidats+1, 0.0)));
 		this.mapAtK =  new ArrayList<Double>((Collections.nCopies(maxNbrCandidats+1, 0.0)));
 		this.topAtK =  new ArrayList<Integer>((Collections.nCopies(maxNbrCandidats+1, 0)));
+		
+		this.successAtK = new ArrayList<List<String>>();
+			for (int i = 0 ; i < maxNbrCandidats+1 ; i++){
+				this.successAtK.add(new ArrayList<String>());
+			}
+		
 		this.failsAtK = new ArrayList<List<String>>();
 			for (int i = 0 ; i < maxNbrCandidats+1 ; i++){
 				this.failsAtK.add(new ArrayList<String>());
@@ -68,7 +73,7 @@ public class QueryFile {
 		
 		evaluateAllQueriesAtAllK();
 		
-		if (logger.isDebugEnabled()) {debug();}
+		if (Ecva.logger.isDebugEnabled()) {debug();}
 	}
 	
 	public QueryFile(String res_file_path, String ref_file_path) throws IOException{
@@ -115,6 +120,11 @@ public class QueryFile {
 		return this.topAtK.get(cut_off)/(double)this.size;
 	}
 	
+	public List<String> getSuccessAtK(int cut_off){
+		if (cut_off > maxNbrCandidats) cut_off = maxNbrCandidats;
+		return this.successAtK.get(cut_off);
+	}
+	
 	public List<String> getFailsAtK(int cut_off){
 		if (cut_off > maxNbrCandidats) cut_off = maxNbrCandidats;
 		return this.failsAtK.get(cut_off);
@@ -126,7 +136,7 @@ public class QueryFile {
 	 */
 	private void evaluateAllQueriesAtAllK() throws IOException{
 		
-		logger.info("Evaluate All Queries at All K.");
+		Ecva.logger.info("Evaluate All Queries at All K.");
 		
 		for (Entry<?, OneQuery> entry : this.data.entrySet()){
 			
@@ -136,6 +146,10 @@ public class QueryFile {
 				this.recallAtK.set(i, this.recallAtK.get(i) + entry.getValue().getRecallAtK(i));
 				this.topAtK.set(i, this.topAtK.get(i) + entry.getValue().getTOPAtK(i));
 				this.mapAtK.set(i, this.mapAtK.get(i) + entry.getValue().getAveragePrecisionAtK(i));
+				
+				if (entry.getValue().getTOPAtK(i) != 0){
+					this.successAtK.get(i).add((String) entry.getKey());
+				}
 				
 				if (entry.getValue().getTOPAtK(i) == 0){
 					this.failsAtK.get(i).add((String) entry.getKey());
@@ -150,7 +164,7 @@ public class QueryFile {
 		String separator_res_file = "\\|";
 		String separator_ref_file = "\t"; //String separator_ref_file = " \\| ";
 		
-		logger.info("Loading Data...");
+		Ecva.logger.info("Loading Data...");
 		long startTime = System.nanoTime();
 		
 		int count = 0;
@@ -212,7 +226,7 @@ public class QueryFile {
 			
         	p = Math.round((((float)count/(float)nbr_lines)*10));
         	if (p != pp) {
-        		if (logger.isInfoEnabled()) {System.out.print(p+"0%..");}
+        		if (Ecva.logger.isInfoEnabled()) {System.out.print(p+"0%..");}
         		pp = p;
         	}
 			
@@ -220,8 +234,8 @@ public class QueryFile {
 		bf_rfp.close();
 		
 		long stopTime = System.nanoTime();
-		if (logger.isInfoEnabled()) {System.out.println("");}
-		logger.info("Done. (Execution Time: "+((stopTime-startTime)/1000000000)+" seconds.)");
+		if (Ecva.logger.isInfoEnabled()) {System.out.println("");}
+		Ecva.logger.info("Done. (Execution Time: "+((stopTime-startTime)/1000000000)+" seconds.)");
 			
 		return loaded_data;
 	}
@@ -266,15 +280,15 @@ public class QueryFile {
 	private void debug(){
 		
 		for (Entry<String, OneQuery> entry : data.entrySet()) {
-				logger.debug(entry.getKey()+" : "+entry.getValue().getCandidats()+"\t"+entry.getValue().getReferences());
+			Ecva.logger.debug(entry.getKey()+" : "+entry.getValue().getCandidats()+"\t"+entry.getValue().getReferences());
 		}
 		
-		logger.debug("size: "+size);
-		logger.debug("maxNbrCandidats: "+maxNbrCandidats);
-		logger.debug("precisionAtK: "+precisionAtK);
-		logger.debug("recallAtK: "+recallAtK);
-		logger.debug("mapAtK: "+mapAtK);
-		logger.debug("homeMadePrecisionAtK: "+topAtK);
+		Ecva.logger.debug("size: "+size);
+		Ecva.logger.debug("maxNbrCandidats: "+maxNbrCandidats);
+		Ecva.logger.debug("precisionAtK: "+precisionAtK);
+		Ecva.logger.debug("recallAtK: "+recallAtK);
+		Ecva.logger.debug("mapAtK: "+mapAtK);
+		Ecva.logger.debug("homeMadePrecisionAtK: "+topAtK);
 		//logger.debug(failsAtK);
 	}
 	
@@ -346,7 +360,9 @@ public class QueryFile {
 //		System.out.println(t1.getMeanPrecisionAtK(5));
 		System.out.println(t1.getMeanPrecisionAtK(20));
 		
-		System.out.println(t1.getFailsAtK(20));
+		System.out.println(t1.getTOPAtK(1));
+		System.out.println(t1.getSuccessAtK(1));
+		System.out.println(t1.getFailsAtK(1));
 	}
 	
 }
