@@ -1,0 +1,14 @@
+requirements.
+
+
+* same structure for cooc matrix/vector (anyways text or index lucene)
+
+for one word = one thread, 
+	mine cooc vector
+	write cooc vector into file
+	
+mine cooc vector = 
+	one each match of a words,
+	open a window
+	retrieve words in the window (possible filter)
+	 
