@@ -70,10 +70,11 @@ public class QueryFile {
 			for (int i = 0 ; i < maxNbrCandidats+1 ; i++){
 				this.failsAtK.add(new ArrayList<String>());
 			}
-		
+			
 		evaluateAllQueriesAtAllK();
 		
 		if (Ecva.logger.isDebugEnabled()) {debug();}
+		debug();
 	}
 	
 	public QueryFile(String res_file_path, String ref_file_path) throws IOException{
@@ -190,6 +191,7 @@ public class QueryFile {
 		
 		BufferedReader bf_ffp = new BufferedReader(new FileReader(new File(ref_file_path)));
 		while ((reading_line = bf_ffp.readLine()) != null) {
+			reading_line = reading_line.toLowerCase();
 			String[] entry_ref = reading_line.split(separator_ref_file);
 			
 			if (subSetRes != null){
@@ -209,6 +211,7 @@ public class QueryFile {
 		
 		BufferedReader bf_rfp = new BufferedReader(new FileReader(new File(res_file_path)));
 		while ((reading_line = bf_rfp.readLine()) != null) {
+			reading_line = reading_line.toLowerCase();
 			String[] entry_cand = reading_line.split("\t");
 			if (loaded_data.containsKey(entry_cand[0].toLowerCase())) {
 				if (entry_cand.length > 1){
@@ -280,7 +283,7 @@ public class QueryFile {
 	private void debug(){
 		
 		for (Entry<String, OneQuery> entry : data.entrySet()) {
-			Ecva.logger.debug(entry.getKey()+" : "+entry.getValue().getCandidats()+"\t"+entry.getValue().getReferences());
+			Ecva.logger.debug(entry.getKey()+" : "+entry.getValue().getCandidats()+"\t"+entry.getValue().getReferences());			
 		}
 		
 		Ecva.logger.debug("size: "+size);
@@ -346,8 +349,10 @@ public class QueryFile {
 		/**
 		 * Tests Complet Class
 		 */
-		QueryFile t1 = new QueryFile("/u/jakubinl/Documents/PhD/HDD_Octal10/Experiments/RareWords/Moses/crossVocWithLongerNBestList/model_trainSet_starbuck_all.txt_vs_testSet_starbuck_2k_randAllFreq.txt_preResComp_nbest50.resComp_crossVoc.res", 
-				"/u/jakubinl/Documents/PhD/Ressources/data/starbuck/intersection_wikipedia/testSet_starbuck_2k_randAllFreq.txt");
+		QueryFile t1 = new QueryFile("/data/rali6/Tmp/jakubinl/CLUSTER/Experiments/wmt2016_taskBiAlign/bug/game", 
+				"/data/rali6/Tmp/jakubinl/CLUSTER/Experiments/wmt2016_taskBiAlign/train.pairs_game");
+		
+		
 		
 //		System.out.println("precisionatK "+t1.precisionAtK);
 //		System.out.println("recallatK "+t1.recallAtK);
@@ -355,14 +360,14 @@ public class QueryFile {
 //		System.out.println("mapatK "+t1.mapAtK);
 		
 		//System.out.println(t1.getMeanPrecisionAtK(2));
-		System.out.println(t1.getTOPAtK(20));
-//		System.out.println(t1.getMeanPrecisionAtK(1));
-//		System.out.println(t1.getMeanPrecisionAtK(5));
-		System.out.println(t1.getMeanPrecisionAtK(20));
+//		System.out.println(t1.getTOPAtK(20));
+////		System.out.println(t1.getMeanPrecisionAtK(1));
+////		System.out.println(t1.getMeanPrecisionAtK(5));
+//		System.out.println(t1.getMeanPrecisionAtK(20));
 		
 		System.out.println(t1.getTOPAtK(1));
-		System.out.println(t1.getSuccessAtK(1));
-		System.out.println(t1.getFailsAtK(1));
+//		System.out.println(t1.getSuccessAtK(1));
+//		System.out.println(t1.getFailsAtK(1));
 	}
 	
 }
