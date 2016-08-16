@@ -1,9 +1,12 @@
 package org.rali.ljak.ecva.utils;
 
+import java.text.DecimalFormat;
 import java.util.Arrays;
 
 public class Utils {
 
+	public static final DecimalFormat df = new DecimalFormat("0.000"); 
+	
 	/**
 	 * Transform a String array (eg. "1 2 3") to Integer array.
 	 * @param stringArray

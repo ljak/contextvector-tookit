@@ -169,6 +169,39 @@ public class Ecva {
 		
 		
 		/**
+		 * toLETORFormat (letorf) Command and Arguments Definitions
+		 */
+		Subparser LETORparser = subParserManager.addParser("toLETORFormat").aliases("letorf").help("'eval -h' for Additional Help");
+		LETORparser.description("DON'T USE !");
+		LETORparser.setDefault("call", new toLETORFormat());
+		
+		LETORparser.addArgument("results_file").type(Arguments.fileType());//.verifyCanRead());
+		LETORparser.addArgument("cand_list_file").type(Arguments.fileType());//.verifyCanRead());
+		
+		
+		/**
+		 * PositionOfReferenceInNBestResults (pp.pos) Command and Arguments Definitions -- PORIR
+		 */
+		Subparser PORIRparser = subParserManager.addParser("PostProcessing.PositionOfReferenceInNBestResults").aliases("pp.pos").help("'eval -h' for Additional Help");
+		PORIRparser.setDefault("call", new PositionOfReferenceInNBestResults());
+		
+		PORIRparser.addArgument("results_file").type(Arguments.fileType());//.verifyCanRead());
+		PORIRparser.addArgument("references_file").type(Arguments.fileType());//.verifyCanRead());
+		PORIRparser.addArgument("-filter_file", "-filt").metavar("FILE").type(Arguments.fileType());//.verifyCanRead());
+		
+		
+		/**
+		 * jaccardSimilarityBetweenTwoNBestLists (pp.jac) Command and Arguments Definitions -- JSBTNB
+		 */
+		Subparser JSBTNBparser = subParserManager.addParser("PostProcessing.jaccardSimilarityBetweenTwoNBestLists").aliases("pp.jac").help("'eval -h' for Additional Help");
+		JSBTNBparser.setDefault("call", new jaccardSimilarityBetweenTwoNBestLists());
+		
+		JSBTNBparser.addArgument("results_file1").type(Arguments.fileType());//.verifyCanRead());
+		JSBTNBparser.addArgument("results_file2").type(Arguments.fileType());//.verifyCanRead());
+		JSBTNBparser.addArgument("references_file").type(Arguments.fileType());//.verifyCanRead());
+		
+		
+		/**
 		 ** END
 		 */
 		
@@ -233,9 +266,9 @@ public class Ecva {
 			
 			try {
 				if (ns.getString("filter_file") == null) {
-					eval = new QueryFile(ns.getString("results_file"), ns.getString("references_file"));
+					eval = new QueryFile(ns.getString("results_file"), ns.getString("references_file"), "simple");
 				} else {
-					eval = new QueryFile(ns.getString("results_file"), ns.getString("references_file"), ns.getString("filter_file"));
+					eval = new QueryFile(ns.getString("results_file"), ns.getString("references_file"), ns.getString("filter_file"), "simple");
 				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
@@ -308,6 +341,55 @@ public class Ecva {
 				e.printStackTrace();
 			}
 			
+		}
+	}
+	
+	private static class toLETORFormat implements CommandToExecute{
+		@Override
+		public void toExecute(Namespace ns) {
+			
+			try {
+				QueryFile qf = new QueryFile(ns.getString("results_file"), ns.getString("cand_list_file"), "");
+				qf.toLETORFormat("");
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+	}
+	
+	private static class PositionOfReferenceInNBestResults implements CommandToExecute{
+		@Override
+		public void toExecute(Namespace ns) {
+				
+				QueryFile qf = null;
+				
+				try {
+					if (ns.getString("filter_file") == null) {
+						qf = new QueryFile(ns.getString("results_file"), ns.getString("references_file"), "");
+					} else {
+						qf = new QueryFile(ns.getString("results_file"), ns.getString("references_file"), ns.getString("filter_file"), "");
+					}
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				qf.PositionOfReferenceInNBestResults();
+		}
+	}
+	
+	private static class jaccardSimilarityBetweenTwoNBestLists implements CommandToExecute{
+		@Override
+		public void toExecute(Namespace ns) {
+			
+			try {
+				PostProcessing.jaccardSimilarityBetweenTwoNBestLists(ns.getString("results_file1"), ns.getString("results_file2"), ns.getString("references_file"));
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 	}
 	

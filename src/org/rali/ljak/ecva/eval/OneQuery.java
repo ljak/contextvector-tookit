@@ -145,8 +145,16 @@ public class OneQuery {
 		
 		if (candidats.size() == 0 || references.size() == 0) return;
 		
+		Object cand = null;
+		
 		for (int i = 0 ; i < candidats.size() && positionOfRefsInCands.size() < references.size() ; i++){
-			Object cand = candidats.get(i);
+			
+			if (candidats.get(i).getClass().equals(Arrays.class)){
+				cand = ((Object[]) candidats.get(i))[0];
+			} else {
+				cand = candidats.get(i);
+			}
+			
 			if (references.contains(cand)) {
 				if (!candidatsFilter.isEmpty() && candidatsFilter.contains(cand)){
 					positionOfRefsInCands.add(i+1);

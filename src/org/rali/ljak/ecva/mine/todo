@@ -11,4 +11,13 @@ mine cooc vector =
 	one each match of a words,
 	open a window
 	retrieve words in the window (possible filter)
-	 
+	
+	
+
+*** Classe abstraite des méthodes de constructions d'une liste de cooccurreance.	 
+** Classe concraite avec du code qui marche sur Lucene
+** Classe concraite qui marche sur du texte libre directement.
+
+chaque mot lu rentre dans une liste/pile; pile a le double de la taille maximum de fenêtre
+quand le mot arrive au milieu de cette liste, il prend une copie de la liste (pile) avec lui.
+(solution qui permet de ne faire qu'une passe sur le texte pour la création des vecteurs de contexte).

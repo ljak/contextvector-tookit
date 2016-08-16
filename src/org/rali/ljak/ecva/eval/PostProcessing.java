@@ -5,13 +5,17 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.rali.ljak.ecva.Ecva;
 import org.rali.ljak.ecva.utils.FilesOperations;
 
@@ -131,7 +135,49 @@ public class PostProcessing {
 		
 		Ecva.logger.trace("Done.");
 	}
+	
+	/**
+	 * TODO
+	 * @param nbestList_one_path
+	 * @param nbestList_two_path
+	 * @param ref_file_path
+	 * @throws IOException
+	 */
+	@SuppressWarnings("unchecked")
+	public static void jaccardSimilarityBetweenTwoNBestLists(String nbestList_one_path, String nbestList_two_path, String ref_file_path) throws IOException{
+		
+		QueryFile nbest1 = new QueryFile(nbestList_one_path, ref_file_path, "simple");
+		QueryFile nbest2 = new QueryFile(nbestList_two_path, ref_file_path, "simple");
+		int size = 0;
+		
+		String queryBothNbest = "";
+		List<String> proposedCandsForNbest1 = null;
+		List<String> proposedCandsForNbest2 = null;
+		double jaccardForQuery = 0.0;
+		double jaccardTotal = 0.0;
+		
+		for (Entry<String, OneQuery> entry : nbest1.getData().entrySet())
+		{
+			queryBothNbest = entry.getKey();
+			proposedCandsForNbest1 = (List<String>) entry.getValue().getCandidats();
+			 System.out.println(queryBothNbest + "   " + proposedCandsForNbest1);
+			proposedCandsForNbest2 = (List<String>) nbest2.getData().get(queryBothNbest).getCandidats();
+			 System.out.println(queryBothNbest + "   " + proposedCandsForNbest2);
+			
+			double num = CollectionUtils.intersection(proposedCandsForNbest1, proposedCandsForNbest2).size();
+			double den = CollectionUtils.union(proposedCandsForNbest1, proposedCandsForNbest2).size();
+			jaccardForQuery = num/den;
 
+			System.out.println(jaccardForQuery);
+			jaccardTotal=jaccardTotal+jaccardForQuery;
+			size++;
+		}
+		
+		System.out.println("jaccardTotal: "+jaccardTotal);
+		System.out.println("Size: "+size);
+		System.out.println("jaccardTotalMoyen: "+jaccardTotal/size);
+	}
+	
 	
 	public static void main(String[] args) throws IOException {
 		// TODO Auto-generated method stub
@@ -144,6 +190,13 @@ public class PostProcessing {
 //		String list = "test_list";
 //		
 //		removeCandidatesInResultsAccordingList(path+file, path+list);
+		
+		String path = "/data/rali7/Tmp/jakubinl/CLUSTER/Experiments/coling16/ranker_analyzer/frequent/";
+		String refPath = "/u/jakubinl/Documents/PhD/Ressources/data/starbuck/intersection_wikipedia/";
+		
+		jaccardSimilarityBetweenTwoNBestLists(path+"context-7-PMI-TRUE-ALL-1S_1k-FREQ-SB_NBEST100.align", 
+				path+"embedding-CBOW-ITER2-NEGATIVE10-SIZE200-WIN5-TrainOn5kHighSB_1k-FREQ-SB_NBEST100.align", 
+				refPath+"testSet_starbuck_1k_highFreq.txt");
 		
 	}
 
