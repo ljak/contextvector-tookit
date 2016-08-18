@@ -51,7 +51,7 @@ public class Ecva {
 		Subparser MCMparser = subParserManager.addParser("MineCoocMatrix").aliases("mine").help("'mine -h' for Additional Help");
 		MCMparser.setDefault("call", new MineCoocMatrix());
 		
-		MCMparser.addArgument("source_corpora").type(Arguments.fileType()); //could be a plain text or a lucene index
+		MCMparser.addArgument("source_corpus").type(Arguments.fileType()); //could be a plain text or a lucene index
 		MCMparser.addArgument("output_file(.cm)").type(Arguments.fileType());
 		
 		MCMparser.addArgument("-words_list_file", "-wlf").metavar("FILE").type(Arguments.fileType()); //if not present, take all the vocabulary

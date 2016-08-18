@@ -1,25 +1,27 @@
 package org.rali.ljak.ecva.mine;
 
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.Set;
 import java.util.Map.Entry;
 
-import org.rali.ljak.ecva.Ecva;
 import org.rali.ljak.ecva.utils.Utils;
 
-public class CoocVector {
+public class CooccurrentsVector {
 	
 	private String word;
 	private int frequency;
 	
-	private Map<String, Integer[]> cooccurrents; //key: cooc ; value: window-based frequencies
+	private int windowSize; // or MaxWindowPos
+	private Map<String, Integer[]> cooccurrents; // [key:cooccurrent ; value:window-based frequencies]
 	
-	public CoocVector(String w){ 
+	
+	public CooccurrentsVector(String w){ 
 		this.word = w;
 		this.frequency = 0;
+		this.windowSize = 0;
 		this.cooccurrents = new HashMap<String, Integer[]>();
 	}
 	
@@ -40,6 +42,14 @@ public class CoocVector {
 		this.frequency = frequency;
 	}
 
+	public int getWindowSize() {
+		return windowSize;
+	}
+
+	public void setWindowSize(int windowSize) {
+		this.windowSize = windowSize;
+	}
+
 	public Map<String, Integer[]> getCooccurrents() {
 		return cooccurrents;
 	}
@@ -53,33 +63,26 @@ public class CoocVector {
 	}
 	
 	
-	public void addCooc(String cooc, int window){
+	public void addCooc(String cooc, int coocFrequency, int windowPos){
 		
-		assert cooc != "";
-		assert window != 0;
+		assert cooc != "" || cooc != null;
+		assert coocFrequency > 0;
+		assert windowPos > 0 && windowPos <= windowSize;
 		
 		if (!this.cooccurrents.containsKey(cooc)){
-			Integer[] wbf = new Integer[Mining.MaxWindow+1];
+			Integer[] wbf = new Integer[windowSize+1];
 			Arrays.fill(wbf, 0);
-			//wbf[0] = TODO: function that return the frequency of cooc.
-			Ecva.logger.info("TODO CoocVector: Function that return the frequency of cooc.");
-			wbf[window] = 1;
+			wbf[0] = coocFrequency;
+			wbf[windowPos] = 1;
 			this.cooccurrents.put(cooc, wbf);
 		} else {
 			Integer[] wbf = this.cooccurrents.get(cooc);
-			wbf[window] = wbf[window]+1;
+			wbf[windowPos] = wbf[windowPos]+1;
 			this.cooccurrents.put(cooc, wbf);
 		}
 	}
 	
 	
-	public void addCooc(String cooc, int window, Set<String> antiCooc){
-		if (antiCooc != null && !antiCooc.contains(cooc)){
-			addCooc(cooc, window);
-		}
-	}	
-	
-
 	public String toString(){
 		String res = this.word+"\t"+this.frequency+"";
 		
@@ -99,13 +102,14 @@ public class CoocVector {
 	}
 	
 	
-	public static CoocVector readFromString(String str){
+	public static CooccurrentsVector readFromString(String str){
 		
 		if (str == null || str.isEmpty()) return null;
+		
 		String[] str_parts = str.split("\t"); // str_parts[0] = word, str_parts[1] = frequency, str_parts[2] = cooccurrents(, str_parts[3] = size)
 		if (str_parts.length == 0 || str_parts[0].isEmpty()) return null;
 		
-		CoocVector cv = new CoocVector(str_parts[0]);
+		CooccurrentsVector cv = new CooccurrentsVector(str_parts[0]);
 		cv.setFrequency(Integer.parseInt(str_parts[1]));
 		
 		String[] coocs_wbf = str_parts[2].split("\\]\\|");
@@ -114,6 +118,7 @@ public class CoocVector {
 			
 			String cooc = cooc_td_wbf[0]; 
 			Integer[] wbf_int = Utils.convertStringArrayToIntegerArray(cooc_td_wbf[1]); // window-based frequencies array, from String to Integer.
+			cv.setWindowSize(wbf_int.length-1);
 			
 			cv.getCooccurrents().put(cooc, wbf_int);
 		}
@@ -121,6 +126,18 @@ public class CoocVector {
 	}
 	
 	
+	public void construcOnTextFile(Path textFile, int windowSize, int maxFrequency){
+		
+		
+	}
+	
+	
+	public void constructOnLuceneIndex(Path LuceneIndex, int windowSize, int maxFrequency){
+		
+		
+	}
+	
+
 	public void filter(String cooc, int window, int frequency){
 		//TODO
 	}
@@ -142,10 +159,11 @@ public class CoocVector {
 //		
 //		System.out.println(cv.toString());
 		
-		String test = "test	0	trois:[0 1 0 2 0 1 ]|cinq:[0 0 0 0 0 1 ]|quatre:[0 0 0 0 1 0 ]|un:[0 1 0 0 0 0 ]|deux:[0 0 1 0 0 0 ]|	5";
+		String test = "test	0	trois:[0 1 0 2 0 1 ]|cinq:[0 0 0 0 0 1 ]|quatre:[0 0 0 0 1 0 ]|un:[0 1 0 0 0 0 ]|	5"; //deux:[0 0 1 0 0 0 ]|
 		
-		CoocVector cv = CoocVector.readFromString(test);
+		CooccurrentsVector cv = CooccurrentsVector.readFromString(test);
 		System.out.println(cv.toString());
+		System.out.println(cv.getWindowSize());
 	}
 
 }

@@ -1,7 +1,7 @@
 requirements.
 
 
-* same structure for cooc matrix/vector (anyways text or index lucene)
+* same structure for cooc matrix/vector (anyways text or index lucene)	
 
 for one word = one thread, 
 	mine cooc vector
